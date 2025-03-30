@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
 const cheerio = require("cheerio");
+const { convert } = require("html-to-text"); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +36,18 @@ app.get("/fetch-content", async (req, res) => {
         // Extract only the <body> content
         const bodyContent = $("body").html();
 
-        res.send(bodyContent || "No body content found");
+        if (!bodyContent) {
+            return res.status(404).json({ error: "No body content found" });
+        }
+
+        // Convert HTML body to plain text
+        const textContent = convert(bodyContent, {
+            wordwrap: false, // Prevents text wrapping
+            ignoreHref: true, // Ignores links
+            ignoreImage: true, // Ignores images
+        });
+
+        res.json({ text: textContent });
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch site content" });
     }
