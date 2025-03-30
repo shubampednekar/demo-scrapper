@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,8 +26,16 @@ app.get("/fetch-content", async (req, res) => {
     }
 
     try {
-        const response = await axios.get(url);
-        res.send(response.data); // Return the site's body content
+        const response = await axios.get(url); 
+        const html = response.data;
+
+        // Load HTML into Cheerio
+        const $ = cheerio.load(html);
+
+        // Extract only the <body> content
+        const bodyContent = $("body").html();
+
+        res.send(bodyContent || "No body content found");
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch site content" });
     }
